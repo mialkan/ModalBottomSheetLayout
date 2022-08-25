@@ -96,7 +96,8 @@ fun ModalBottomSheetExample() {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-@Composable fun BottomSheetContent(sheetState: ModalBottomSheetState) {
+@Composable
+fun BottomSheetContent(sheetState: ModalBottomSheetState) {
     val coroutineScope = rememberCoroutineScope()
     Column {
         Column(
