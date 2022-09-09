@@ -9,10 +9,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -35,48 +35,37 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ModalBottomSheetExample() {
-    val topBarHeight = LocalDensity.current.run { 56.dp.toPx() }
+fun ModalBottomSheetExample(
+    modifier: Modifier = Modifier
+) {
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+
+    var fullHeight by remember { mutableStateOf(0f) }
+    var contentHeight by remember { mutableStateOf(0f) }
+
     ModalBottomSheetLayout(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         sheetState = sheetState,
         sheetContent = {
-            Box(
-                modifier = Modifier.offset(0.dp, (-1 * sheetState.offset.value).dp).height(
-                    with(LocalDensity.current) {
-                        if (sheetState.offset.value > topBarHeight) {
-                            0.dp
-                        } else {
-                            (topBarHeight - sheetState.offset.value).toDp()
-                        }
-                    }
-                )
-            ) {
-                TopAppBar(
-                    backgroundColor = MaterialTheme.colors.surface,
-                    title = {
-                        Text(
-                            text = "This a bottom sheet top bar",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.semantics { heading() }
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            coroutineScope.launch {
-                                sheetState.hide()
+
+            if (fullHeight == 0f || contentHeight == 0f) {
+                BoxWithConstraints(modifier) {
+                    fullHeight = constraints.maxHeight.toFloat()
+                    Box(
+                        Modifier
+                            .onGloballyPositioned {
+                                contentHeight = it.size.height.toFloat()
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "",
-                            )
+                    ) {
+                        Column {
+                            BottomSheetContent(sheetState)
                         }
                     }
-                )
+                }
+            }
+            if (fullHeight != 0f && contentHeight >= fullHeight) {
+                ModalBottomSheetTopBar("This is a top app bar for modal bottom sheet", sheetState)
             }
             BottomSheetContent(sheetState)
         },
@@ -93,6 +82,57 @@ fun ModalBottomSheetExample() {
             }
         }
     )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun ModalBottomSheetTopBar(title: String, sheetState: ModalBottomSheetState) {
+    val coroutineScope = rememberCoroutineScope()
+    var topBarHeight by remember { mutableStateOf(0f) }
+    val barHeight = with(LocalDensity.current) {
+        if (sheetState.offset.value > topBarHeight) {
+            0.dp
+        } else {
+            (topBarHeight - sheetState.offset.value).toDp()
+        }
+    }
+    BoxWithConstraints {
+        Box(
+            modifier = Modifier
+                .modifyIf(topBarHeight != 0f) {
+                    height(barHeight)
+                }
+                .onGloballyPositioned {
+                    if (topBarHeight < it.size.height.toFloat()) {
+                        topBarHeight = it.size.height.toFloat()
+                    }
+                }
+        ) {
+            TopAppBar(
+                backgroundColor = MaterialTheme.colors.surface,
+                title = {
+                    Text(
+                        text = title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "",
+                        )
+                    }
+                }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -152,3 +192,6 @@ fun BottomSheetContent(sheetState: ModalBottomSheetState) {
         }
     }
 }
+
+fun Modifier.modifyIf(condition: Boolean, modify: Modifier.() -> Modifier) =
+    if (condition) modify() else this
