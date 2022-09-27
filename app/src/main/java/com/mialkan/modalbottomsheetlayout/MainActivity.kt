@@ -59,7 +59,7 @@ fun ModalBottomSheetExample(
                             }
                     ) {
                         Column {
-                            BottomSheetContent(sheetState)
+                            BottomSheetContent()
                         }
                     }
                 }
@@ -67,7 +67,7 @@ fun ModalBottomSheetExample(
             if (fullHeight != 0f && contentHeight >= fullHeight) {
                 ModalBottomSheetTopBar("This is a top app bar for modal bottom sheet", sheetState)
             }
-            BottomSheetContent(sheetState)
+            BottomSheetContent()
         },
         content = {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -126,7 +126,7 @@ private fun ModalBottomSheetTopBar(title: String, sheetState: ModalBottomSheetSt
                     }) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "",
+                            contentDescription = null,
                         )
                     }
                 }
@@ -135,57 +135,21 @@ private fun ModalBottomSheetTopBar(title: String, sheetState: ModalBottomSheetSt
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetContent(sheetState: ModalBottomSheetState) {
-    val coroutineScope = rememberCoroutineScope()
-    Column {
+fun BottomSheetContent() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(text = "This is a Bottom Sheet")
+        Spacer(modifier = Modifier.height(20.dp))
         Column(
-            modifier = Modifier.fillMaxWidth().padding(10.dp).verticalScroll(
+            modifier = Modifier.verticalScroll(
                 rememberScrollState()
-            ),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            )
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(text = "This is a Bottom Sheet")
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris erat erat, mattis ac enim id, vulputate lacinia mi. Aenean auctor pulvinar purus non lobortis. Maecenas consectetur rhoncus efficitur. Vestibulum ut ante vel purus dictum fringilla id ac erat. Pellentesque ut velit ipsum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec accumsan ipsum bibendum leo auctor, ac rhoncus neque mattis. Nunc vel augue erat.")
-            Spacer(modifier = Modifier.height(20.dp))
-
-            TextButton(onClick = {
-                coroutineScope.launch {
-                    sheetState.animateTo(
-                        if (sheetState.currentValue == ModalBottomSheetValue.HalfExpanded) {
-                            ModalBottomSheetValue.Expanded
-                        } else {
-                            ModalBottomSheetValue.HalfExpanded
-                        }
-                    )
-                }
-            }) {
-                Text(
-                    when (sheetState.currentValue) {
-                        ModalBottomSheetValue.HalfExpanded -> "Change state to Expanded"
-                        ModalBottomSheetValue.Expanded -> "Change state to Half Expanded"
-                        else -> sheetState.currentValue.toString()
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-            TextButton(onClick = {
-                coroutineScope.launch {
-                    sheetState.hide()
-                }
-            }) {
-                Text("Close Sheet")
-            }
-
-            Spacer(modifier = Modifier.height(50.dp))
-            Text(text = "If you see this text, this bottom sheet is full expanded")
-            Spacer(modifier = Modifier.height(20.dp))
-
-            (1..20).forEach {
+            (1..60).forEach {
                 Text("This line is $it")
                 Spacer(modifier = Modifier.height(10.dp))
             }
